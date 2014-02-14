@@ -1,16 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+				 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.lotaris.selenium</groupId>
-  <artifactId>lotaris-selenium-framework</artifactId>
+	<groupId>com.lotaris.selenium</groupId>
+	<artifactId>lotaris-selenium-framework</artifactId>
 	<name>Lotaris Selenium Framework</name>
-  <version>1.0.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
 	<build>
 		<pluginManagement>
@@ -98,7 +98,7 @@
 				<artifactId>rox-junit-maven-plugin</artifactId>
 				<configuration>
 					<fullStackTraces>true</fullStackTraces>
-<!--			<filters>
+					<!--			<filters>
 						<filter>55b73b7b80bc</filter>
 					</filters> -->
 				</configuration>
@@ -179,7 +179,7 @@
 		</pluginRepository>
 	</pluginRepositories>
 	
-  <dependencies>
+	<dependencies>
 		<!-- Jersey client dependencies -->
 		<!--<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
@@ -205,7 +205,26 @@
 			<version>7.0</version>
 			<scope>provided</scope>
 		</dependency>
-										
+							
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>2.37.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-firefox-driver</artifactId>
+			<version>2.37.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-chrome-driver</artifactId>
+			<version>2.37.1</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>com.lotaris.rox.client</groupId>
 			<artifactId>rox-client-junit</artifactId>
@@ -226,30 +245,30 @@
 			<scope>test</scope>
 		</dependency>
 		
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-	  <scope>test</scope>
-    </dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>provided</scope>
+		</dependency>
 		
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
 			<version>1.9.5</version>
-	  	  <scope>test</scope>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-module-junit4</artifactId>
 			<version>1.5.1</version>
-	  	  <scope>test</scope>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito</artifactId>
 			<version>1.5.1</version>
-	  	  <scope>test</scope>
+			<scope>test</scope>
 		</dependency>			
-  </dependencies>
+	</dependencies>
 </project>

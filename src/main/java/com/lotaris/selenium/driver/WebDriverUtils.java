@@ -93,7 +93,7 @@ public class WebDriverUtils {
 		if (pageDescriptor == null) {
 			throw new IllegalArgumentException("The page object class is not annotated with @PageDescriptor.");
 		}
-		
+
 		driver.get(PageObject.buildUrl(configuration, pageDescriptor.url()));
 		T page = org.openqa.selenium.support.PageFactory.initElements(driver, pageClass);
 		page.checks();

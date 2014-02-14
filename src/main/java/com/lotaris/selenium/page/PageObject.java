@@ -96,7 +96,7 @@ public abstract class PageObject implements IPageObject {
 			}
 			
 			if (!descriptor.disableUrlCheck()) {
-				TestUtils.checkPageUrl(driver, url, descriptor.name());
+				TestUtils.checkPageUrl(driver, url, descriptor.name(), descriptor.checkWithoutQueryString());
 			}
 		}
 		catch (PageInitializationException pie) {

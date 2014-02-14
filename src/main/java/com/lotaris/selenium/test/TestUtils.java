@@ -47,15 +47,25 @@ public class TestUtils {
 	 * @param driver the driver object of the currently initialized browser
 	 * @param expectedUrl the expected URL of the currently laoded page
 	 * @param pageName the name of the page expected to be loaded, for incorporating in the exception message
+	 * @param checkWithoutQueryString if true, the query string part of the url will be ignored for the verification
 	 * @throws PageInitializationException
 	 */
-	public static void checkPageUrl(WebDriver driver, String expectedUrl, String pageName) throws PageInitializationException {
-		if (!driver.getCurrentUrl().equals(expectedUrl)) {
-			String message = String.format("[%s] page URL is not correct. Expected [%s] but was [%s]", pageName, expectedUrl, driver.getCurrentUrl());
+	public static void checkPageUrl(WebDriver driver, String expectedUrl, String pageName, Boolean checkWithoutQueryString) throws PageInitializationException {
+		String driverUrlString = driver.getCurrentUrl();
+		if (checkWithoutQueryString) {
+			if (driverUrlString.contains("?")) {
+				String[] driverUrlSplit = driverUrlString.split("\\?");
+				driverUrlString = driverUrlSplit[0];
+			} else {
+				LOG.debug("Actual URL does not contain Query String");
+			}
+		}
+		if (!driverUrlString.equals(expectedUrl)) {
+			String message = String.format("[%s] page URL is not correct. Expected [%s] but was [%s]", pageName, expectedUrl, driverUrlString);
 			LOG.error(message);
 			throw new PageInitializationException(message);
 		}
-	}
+	}	
 	
 	/**
 	 * Check a page for a condition given

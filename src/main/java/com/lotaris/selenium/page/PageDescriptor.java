@@ -43,4 +43,9 @@ public @interface PageDescriptor {
 	 * @return If true, check of URL is disabled
 	 */
 	boolean disableUrlCheck() default false;
+	
+	/**
+	 * @return If true, do not take care about the query parameters
+	 */
+	boolean checkWithoutQueryString() default false;
 }

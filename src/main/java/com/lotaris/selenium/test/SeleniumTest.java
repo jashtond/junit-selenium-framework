@@ -17,16 +17,27 @@ public abstract class SeleniumTest {
 	protected abstract IConfiguration getConfiguration();
 	
 	/**
-	 * Proxy method to the webdriver utils to start from a page
+	 * Will open the base URL and then go to the page class URL
+	 * 
+	 * @param <T> The page type
+	 * @param pageClass The page class to initialize
+	 * @return The page created
+	 */
+	protected <T extends IPageObject> T startFromBase(Class<T> pageClass) {
+		return WebDriverUtils.startFromBaseUrl(getConfiguration(), pageClass);
+	}
+	
+	/**
+	 * Open directly the URL from the page class
 	 * 
 	 * @param <T> The page type
 	 * @param pageClass The page class to initialize
 	 * @return The page created
 	 */
 	protected <T extends IPageObject> T startFromPage(Class<T> pageClass) {
-		return WebDriverUtils.startFromBaseUrl(getConfiguration(), pageClass);
+		return WebDriverUtils.startFromPage(getConfiguration(), pageClass);
 	}
-	
+
 	/**
 	 * Proxy method to the webdriver utils to start from a page and get
 	 * the expected page (eg: after a redirect).

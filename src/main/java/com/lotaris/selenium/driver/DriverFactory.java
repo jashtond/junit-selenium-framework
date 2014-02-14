@@ -43,6 +43,13 @@ public final class DriverFactory {
 		// first use of these native events are required when testing the tooltips displayed in AM dashboard
 		ffp.setEnableNativeEvents(true);
 
+		// TODO: fixme once Selenium ver 2.40 is available
+		// The below line has been added as we are getting page loading timeouts with DataCash
+		// Related links:
+		// http://stackoverflow.com/questions/21214340/make-selenium-webdriver-stop-loading-the-page-if-the-desired-element-is-already
+		// http://code.google.com/p/selenium/issues/detail?id=6867&sort=-id&colspec=ID%20Stars%20Type%20Status%20Priority%20Milestone%20Owner%20Summary
+		ffp.setPreference("network.http.connection-timeout", 10);
+
 		// Prepare capabilities
 		DesiredCapabilities capabilities = new DesiredCapabilities();
 		

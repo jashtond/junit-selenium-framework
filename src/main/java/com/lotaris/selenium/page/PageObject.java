@@ -91,8 +91,13 @@ public abstract class PageObject implements IPageObject {
 		}
 		
 		try {
-			TestUtils.checkTitle(driver, descriptor.title(), descriptor.name());
-			TestUtils.checkPageUrl(driver, url, descriptor.name());
+			if (!descriptor.disableTitleCheck()) {
+				TestUtils.checkTitle(driver, descriptor.title(), descriptor.name());
+			}
+			
+			if (!descriptor.disableUrlCheck()) {
+				TestUtils.checkPageUrl(driver, url, descriptor.name());
+			}
 		}
 		catch (PageInitializationException pie) {
 			throw new IllegalStateException(pie);

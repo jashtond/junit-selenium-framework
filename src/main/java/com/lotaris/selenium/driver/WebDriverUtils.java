@@ -2,7 +2,9 @@ package com.lotaris.selenium.driver;
 
 import com.lotaris.selenium.IConfiguration;
 import com.lotaris.selenium.page.IPageObject;
+import com.lotaris.selenium.page.PageDescriptor;
 import com.lotaris.selenium.page.PageFactory;
+import com.lotaris.selenium.page.PageObject;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -73,6 +75,57 @@ public class WebDriverUtils {
 		page.checks();
 		return page;
 	}
+	
+	/**
+	 * Get the starting page by retrieving the URL from the page descriptor
+	 * annotation and the base URL got from the configuration. Init the page
+	 * object from the result obtained by the request to the URL built.
+	 * 
+	 * @param <T> The entry page type
+	 * @param pageClass The concrete class of the page to start from
+	 * @return The page object retrieved from the page class
+	 */
+	public static <T extends IPageObject> T startFromPage(IConfiguration configuration, Class<T> pageClass) {
+		driver.manage().deleteAllCookies();
+
+		PageDescriptor pageDescriptor = pageClass.getAnnotation(PageDescriptor.class);
+		
+		if (pageDescriptor == null) {
+			throw new IllegalArgumentException("The page object class is not annotated with @PageDescriptor.");
+		}
+		
+		driver.get(PageObject.buildUrl(configuration, pageDescriptor.url()));
+		T page = org.openqa.selenium.support.PageFactory.initElements(driver, pageClass);
+		page.checks();
+		return page;
+	}
+		
+	/**
+	 * Get the starting page by retrieving the URL from the page descriptor
+	 * annotation and the base URL got from the configuration. 
+	 * 
+	 * Init the page object from the result obtained by the request to the URL built
+	 * as the expected page. This is useful when a redirection is involved.
+	 * 
+	 * @param <T> The expected page type
+	 * @param pageClass The concrete class of the page to start from
+	 * @param expectedPageClass The page that we expect to be redirected
+	 * @return The page object retrieved from the expected page class
+	 */
+	public static <T extends IPageObject> T startFromPage(IConfiguration configuration, Class<? extends PageObject> pageClass, Class<T> expectedPageClass) {
+		driver.manage().deleteAllCookies();
+		
+		PageDescriptor pageDescriptor = pageClass.getAnnotation(PageDescriptor.class);
+		
+		if (pageDescriptor == null) {
+			throw new IllegalArgumentException("The page object class is not annotated with @PageDescriptor.");
+		}
+		
+		driver.get(PageObject.buildUrl(configuration, pageDescriptor.url()));
+		T page = org.openqa.selenium.support.PageFactory.initElements(driver, expectedPageClass);
+		page.checks();
+		return page;
+	}		
 	
 	/**
 	 * Takes a screenshot of the current browser page and saves it with the given name

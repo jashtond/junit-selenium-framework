@@ -33,4 +33,14 @@ public @interface PageDescriptor {
 	 * @return Base url if it is required to override the default one
 	 */
 	String baseUrl() default "";
+	
+	/**
+	 * @return If true, check of title is disabled
+	 */
+	boolean disableTitleCheck() default false;
+	
+	/**
+	 * @return If true, check of URL is disabled
+	 */
+	boolean disableUrlCheck() default false;
 }

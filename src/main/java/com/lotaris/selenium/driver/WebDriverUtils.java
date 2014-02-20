@@ -95,7 +95,7 @@ public class WebDriverUtils {
 		}
 
 		driver.get(PageObject.buildUrl(configuration, pageDescriptor.url()));
-		T page = org.openqa.selenium.support.PageFactory.initElements(driver, pageClass);
+		T page = PageFactory.initElements(driver, pageClass);
 		page.checks();
 		return page;
 	}
@@ -122,7 +122,7 @@ public class WebDriverUtils {
 		}
 		
 		driver.get(PageObject.buildUrl(configuration, pageDescriptor.url()));
-		T page = org.openqa.selenium.support.PageFactory.initElements(driver, expectedPageClass);
+		T page = PageFactory.initElements(driver, expectedPageClass);
 		page.checks();
 		return page;
 	}		

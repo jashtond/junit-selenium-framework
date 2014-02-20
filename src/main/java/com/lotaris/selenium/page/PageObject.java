@@ -7,7 +7,9 @@ import java.net.URLEncoder;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
@@ -297,4 +299,19 @@ public abstract class PageObject implements IPageObject {
 	protected void waitForInvisibility(By locator) {
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
 	}
+	
+	/**
+	 * This method is a workaround for a known bug of the current Selenium 
+	 * version. As it seems Selenium cannot click on an element that is outside
+	 * the screen, we scroll to the position of the button before clicking. 
+	 * 
+	 * @param by The element to scroll to and click
+	 */
+	public void scrollAndClick(WebElement we) {
+	   int elementPosition = we.getLocation().getY();
+	   // window.scroll should be supported by major browsers
+	   String js = String.format("window.scroll(0, %s)", elementPosition);
+	   ((JavascriptExecutor)driver).executeScript(js);
+	   we.click();
+	}	
 }

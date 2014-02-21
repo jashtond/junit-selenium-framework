@@ -9,7 +9,6 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.internal.Coordinates;
 import org.openqa.selenium.internal.Locatable;
 import org.openqa.selenium.internal.WrapsElement;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 /**
  * Abstract class implementing WebElement, WrapsElement and Locatable
@@ -22,32 +21,24 @@ import org.openqa.selenium.support.ui.WebDriverWait;
  * @author Alain Lala <alain.lala@lotaris.com>
  * @author Laurent Prevost <laurent.prevost@lotaris.com>
  */
-public class PageElement implements WebElement, WrapsElement, Locatable {
-//	private static final Logger LOG = LoggerFactory.getLogger(AbstractPageElement.class);
-	
+public class PageElement<T extends IPageObject> extends PageBlock implements WebElement, WrapsElement, Locatable {
 	/**
 	 * The web element that the abstract page element is proxying
 	 */
 	private WebElement webElement;
 
 	/**
-	 * The web driver
+	 * The parent page object
 	 */
-	private WebDriver driver;
-
-	/**
-	 * Fluent wait which handles waiting for page elements
-	 */
-	protected WebDriverWait wait;
-
+	private T pageObject;
+	
 	/**
 	 * Constructor
 	 * 
 	 * @param webDriver The webdriver
 	 */
 	public PageElement(WebDriver webDriver) { 
-		driver = webDriver;
-		wait = new WebDriverWait(driver, PageObject.WAIT_TIME);
+		super(webDriver);
 	}
 	
 	/**
@@ -57,28 +48,30 @@ public class PageElement implements WebElement, WrapsElement, Locatable {
 	 * @param webElement Webelement manipulated by the page element
 	 */
 	public PageElement(WebDriver webDriver, WebElement webElement) {
-		this(webDriver);
+		super(webDriver);
 		this.webElement = webElement;
 	}
+
+	@Override
+	void protectedBuild(WebDriver webDriver) {}
 	
+	/**
+	 * @return Retrieve the web element
+	 */
 	WebElement getWebelement() {
 		return webElement;
 	}
 	
 	/**
-	 * Initialize the page object and enforce that the page is valid
-	 * 
-	 * @param <T> The page type to initPage
-	 * @param pageClass The page class of the page to initPage
-	 * @param urlToCheck The url to be checked
-	 * @return The page initialized and valid to continue testing
+	 * @return The page object
 	 */
-	protected <T extends IPageObject> T initPage(Class<T> pageClass, String urlToCheck) {
-		T page = PageFactory.initElements(driver, pageClass);
-		page.checks(urlToCheck);
-		return page;
+	public T getPageObject() {
+		if (pageObject == null) {
+			throw new IllegalStateException("Page object should be injected by the framework.");
+		}
+		return pageObject;
 	}
-
+	
 	//<editor-fold defaultstate="collapsed" desc="Default Overrides">
 	@Override
 	public void click() {

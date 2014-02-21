@@ -35,10 +35,10 @@ public class PageFactory {
 	 * @param pageClassToProxy A class which will be initialized.
 	 * @return An instantiated instance of the class
 	 */
-	public static <T> T initElements(WebDriver webDriver, Class<T> pageClassToProxy) {
+	public static <T extends IPageObject> T initElements(WebDriver webDriver, Class<T> pageClassToProxy) {
 		T page = instantiatePage(webDriver, pageClassToProxy);
 		final WebDriver driverRef = webDriver;
-		org.openqa.selenium.support.PageFactory.initElements(new PageDecorator(webDriver, new DefaultElementLocatorFactory(driverRef)), page);
+		org.openqa.selenium.support.PageFactory.initElements(new PageDecorator(page, webDriver, new DefaultElementLocatorFactory(driverRef)), page);
 		return page;
 	}
 
@@ -50,7 +50,7 @@ public class PageFactory {
 	 * @param pageClassToProxy The page class
 	 * @return The page created
 	 */
-	private static <T> T instantiatePage(WebDriver webDriver, Class<T> pageClassToProxy) {
+	private static <T extends IPageObject> T instantiatePage(WebDriver webDriver, Class<T> pageClassToProxy) {
 		try {
 			try {
 				Constructor<T> cons = pageClassToProxy.getConstructor(WebDriver.class);

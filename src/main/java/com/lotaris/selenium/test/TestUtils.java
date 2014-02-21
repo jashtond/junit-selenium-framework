@@ -60,6 +60,7 @@ public class TestUtils {
 				LOG.debug("Actual URL does not contain Query String");
 			}
 		}
+		
 		if (!driverUrlString.equals(expectedUrl)) {
 			String message = String.format("[%s] page URL is not correct. Expected [%s] but was [%s]", pageName, expectedUrl, driverUrlString);
 			LOG.error(message);
@@ -76,8 +77,7 @@ public class TestUtils {
 	 * @param condition The condition to apply to the page
 	 * @throws PageInitializationException
 	 */
-	private static void checkCondition(WebDriver driver, String expectedTitle, String pageName, 
-		ExpectedCondition<Boolean> condition) throws PageInitializationException {
+	private static void checkCondition(WebDriver driver, String expectedTitle, String pageName, ExpectedCondition<Boolean> condition) throws PageInitializationException {
 		
 		final String message = String.format("[%s] page not initialized correctly. Expected [%s] but was [%s]", pageName, expectedTitle, driver.getTitle());
 		

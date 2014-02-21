@@ -35,19 +35,30 @@ import org.openqa.selenium.support.pagefactory.internal.LocatingElementHandler;
  * @author Laurent Prevost <laurent.prevost@lotaris.com>
  */
 public class PageDecorator extends DefaultFieldDecorator {
-//	private static final Logger LOG = LoggerFactory.getLogger(PageElementDecorator.class);
+//	private static final Logger LOG = LoggerFactory.getLogger(PageDecorator.class);
 	
 	/**
 	 * Webdriver reference to inject to Page Elements
 	 */
 	private WebDriver webDriver;
 	
-	//<editor-fold defaultstate="collapsed" desc="Constructor">
-	public PageDecorator(WebDriver webDriver, ElementLocatorFactory factory) {
+	/**
+	 * The parent page to set to the page elements
+	 */
+	private IPageObject parentPage;
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param pageObject The page object
+	 * @param webDriver The web driver
+	 * @param factory The element locator factory
+	 */
+	public PageDecorator(IPageObject pageObject, WebDriver webDriver, ElementLocatorFactory factory) {
 		super(factory);
 		this.webDriver = webDriver;
+		this.parentPage = pageObject;
 	}
-	//</editor-fold>
 
 	@Override
 	public Object decorate(ClassLoader cl, Field field) {
@@ -63,12 +74,12 @@ public class PageDecorator extends DefaultFieldDecorator {
 		
 		// Field is a single abstract page element
 		if (PageElement.class.isAssignableFrom(field.getType())) {
-			return proxyForAbstractPageElement(webDriver, cl, getParameterizedType(field), locator);
+			return proxyForAbstractPageElement(parentPage, webDriver, cl, getParameterizedType(field), locator);
 		} 
 		
 		// Field is a list of single abstract page elements
 		else if (List.class.isAssignableFrom(field.getType()) && isPageElementList(field)) {
-			return proxyForListOfAbstractPageElement(webDriver, cl, getParameterizedType(field), locator);
+			return proxyForListOfAbstractPageElement(parentPage, webDriver, cl, getParameterizedType(field), locator);
 		} 
 		
 		// Field is a web element
@@ -129,8 +140,17 @@ public class PageDecorator extends DefaultFieldDecorator {
 			return false;
 		}
 
+		// Check if the type of list is typed or not
+		Class parameterizedClassForList;
+		ParameterizedType listType = (ParameterizedType) genericType;
+		if (listType.getActualTypeArguments()[0] instanceof ParameterizedType) {
+			parameterizedClassForList = (Class) ((ParameterizedType) listType.getActualTypeArguments()[0]).getRawType();
+		}
+		else {
+			parameterizedClassForList = (Class) listType.getActualTypeArguments()[0];
+		}
+
 		// Check the paremterized type if it is webelement or page element
-		Class parameterizedClassForList = (Class)  ((ParameterizedType) genericType).getActualTypeArguments()[0];
 		if (!WebElement.class.isAssignableFrom(parameterizedClassForList)) {
 			return false;
 		}
@@ -147,13 +167,14 @@ public class PageDecorator extends DefaultFieldDecorator {
 	 * Create a proxy of a concrete class of an AbstractPageElement to deal
 	 * with the selenium webelement
 	 * 
+	 * @param parentPageObject The parent page object
 	 * @param webDriver The web driver reference
 	 * @param loader class loader The class loader
 	 * @param pageElementClass The page element class to proxy
 	 * @param locator the locator The locator to find the element
 	 * @return The page element proxy
 	 */
-	private static PageElement proxyForAbstractPageElement(WebDriver webDriver, ClassLoader loader, Class<? extends PageElement> pageElementClass, ElementLocator locator) {
+	private static PageElement proxyForAbstractPageElement(IPageObject parentPageObject, WebDriver webDriver, ClassLoader loader, Class<? extends PageElement> pageElementClass, ElementLocator locator) {
 		try {
 			pageElementClass.getConstructor(WebDriver.class);
 		}
@@ -163,7 +184,7 @@ public class PageDecorator extends DefaultFieldDecorator {
 		
 		Enhancer pageElementProxy = new Enhancer();
 		
-		pageElementProxy.setCallback(new AbstractPageElementCallback(webDriver, loader, locator, pageElementClass));
+		pageElementProxy.setCallback(new AbstractPageElementCallback(parentPageObject, webDriver, loader, locator, pageElementClass));
 		pageElementProxy.setInterfaces(new Class[] {WebElement.class, WrapsElement.class, Locatable.class});
 		pageElementProxy.setSuperclass(pageElementClass);
 		
@@ -174,17 +195,18 @@ public class PageDecorator extends DefaultFieldDecorator {
 	 * Create a proxy of list of class of an AbstractPageElement to deal
 	 * with the selenium webelement
 	 * 
+	 * @param parentPageObject The parent page object
 	 * @param webDriver The web driver reference
 	 * @param loader class loader The class loader
 	 * @param pageElementClass The page element class to proxy
 	 * @param locator the locator The locator to find the element
 	 * @return The page element proxy list
 	 */
-	private static List<WebElement> proxyForListOfAbstractPageElement(WebDriver webDriver, ClassLoader loader, Class<? extends PageElement> pageElementClass, ElementLocator locator) {
+	private static List<WebElement> proxyForListOfAbstractPageElement(IPageObject parentPageObject, WebDriver webDriver, ClassLoader loader, Class<? extends PageElement> pageElementClass, ElementLocator locator) {
 		return (List<WebElement>) Proxy.newProxyInstance(
 			loader, 
 			new Class[] { List.class }, 
-			new LocatingElementListOfAbstractPageElementHandler(webDriver, locator, pageElementClass)
+			new LocatingElementListOfAbstractPageElementHandler(parentPageObject, webDriver, locator, pageElementClass)
 		);
 	}
 
@@ -209,7 +231,15 @@ public class PageDecorator extends DefaultFieldDecorator {
 	 */
 	private Class<? extends PageElement> getParameterizedType(Field field) {
 		if (List.class.isAssignableFrom(field.getType())) {
-			return (Class<? extends PageElement>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
+			ParameterizedType listType = (ParameterizedType) field.getGenericType();
+			
+			if (listType.getActualTypeArguments()[0] instanceof ParameterizedType) {
+				return (Class) ((ParameterizedType) listType.getActualTypeArguments()[0]).getRawType();
+			}
+			else {
+				return (Class) listType.getActualTypeArguments()[0];
+			}
+//			return (Class<? extends PageElement>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
 		}
 		else {
 			return (Class<? extends PageElement>) field.getType();
@@ -241,18 +271,25 @@ public class PageDecorator extends DefaultFieldDecorator {
 		private final ClassLoader loader;
 
 		/**
+		 * The parent page object
+		 */
+		private final IPageObject parentPage;
+		
+		/**
 		 * Constructor
 		 * 
+		 * @param pageObject The parent page object
 		 * @param webDriver The web driver
 		 * @param loader The class loader
 		 * @param locator The locator for the current level
 		 * @param pageElementClass The page element class
 		 */
-		public AbstractPageElementCallback(WebDriver webDriver, ClassLoader loader, ElementLocator locator, Class<? extends PageElement> pageElementClass) {
+		public AbstractPageElementCallback(IPageObject parentPage, WebDriver webDriver, ClassLoader loader, ElementLocator locator, Class<? extends PageElement> pageElementClass) {
 			this.webDriver = webDriver;
 			this.pageElementClass = pageElementClass;
 			this.locator = locator;
 			this.loader = loader;
+			this.parentPage = parentPage;
 		}
 		
 		@Override
@@ -267,6 +304,8 @@ public class PageDecorator extends DefaultFieldDecorator {
 				// Create the new instance of the page element that contains a proxy to the web element
 				PageElement pageElement = (PageElement) pageElementConstructor.newInstance(webDriver, weProxy);
 
+				injectPageObject(pageElement, parentPage);
+				
 				for (Method m : WebElement.class.getMethods()) {
 					if (m.getName().equals(method.getName())) {
 						return method.invoke(pageElement, args);
@@ -274,7 +313,7 @@ public class PageDecorator extends DefaultFieldDecorator {
 				}
 
 				// Initialize the page element
-				PageFactory.initElements(new PageDecorator(webDriver, new DefaultElementLocatorFactory(locator.findElement())), pageElement);
+				PageFactory.initElements(new PageDecorator(parentPage, webDriver, new DefaultElementLocatorFactory(locator.findElement())), pageElement);
 
 				// Finally invoke the method on the instance of the class just created
 				return proxy.invoke(pageElement, args);
@@ -305,16 +344,23 @@ public class PageDecorator extends DefaultFieldDecorator {
 		private final Class<? extends PageElement> pageElementClass;
 
 		/**
+		 * 
+		 */
+		private final IPageObject parentPage;
+		
+		/**
 		 * Constructor 
 		 * 
+		 * @param pageObject The parent page object
 		 * @param webDriver The web driver reference
 		 * @param locator The locator to find the elements
 		 * @param pageElementClass The page element real class
 		 */
-		public LocatingElementListOfAbstractPageElementHandler(WebDriver webDriver, ElementLocator locator, Class<? extends PageElement> pageElementClass) {
+		public LocatingElementListOfAbstractPageElementHandler(IPageObject pageObject, WebDriver webDriver, ElementLocator locator, Class<? extends PageElement> pageElementClass) {
 			this.webDriver = webDriver;
 			this.pageElementClass = pageElementClass;
 			this.locator = locator;
+			this.parentPage = pageObject;
 		}
 
 		@Override
@@ -330,8 +376,10 @@ public class PageDecorator extends DefaultFieldDecorator {
 					// Create the page element
 					PageElement ape = pageElementClass.getConstructor(WebDriver.class, WebElement.class).newInstance(webDriver, we);
 
+					injectPageObject(ape, parentPage);
+					
 					// Initialize the page element
-					PageFactory.initElements(new PageDecorator(webDriver, new DefaultElementLocatorFactory(we)), ape);
+					PageFactory.initElements(new PageDecorator(parentPage, webDriver, new DefaultElementLocatorFactory(we)), ape);
 
 					// Store the page element into the list
 					list.add(ape);
@@ -343,6 +391,34 @@ public class PageDecorator extends DefaultFieldDecorator {
 			catch (IllegalAccessException | IllegalArgumentException | InstantiationException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 				throw new RuntimeException(e.getMessage(), e.getCause());
 			}
+		}
+	}
+	
+	/**
+	 * Inject the page object into the page element
+	 * 
+	 * @param pageElement The page element where to inject the page object
+	 * @param pageObject The page object to inject into the page element
+	 */
+	private static void injectPageObject(PageElement pageElement, IPageObject pageObject) {
+		try {
+			Field field = PageElement.class.getDeclaredField("pageObject");
+			
+			boolean acc = field.isAccessible();
+			
+			if (!acc) {
+				field.setAccessible(true);
+				acc = false;
+			}
+			
+			field.set(pageElement, pageObject);
+			
+			if (!acc) {
+				field.setAccessible(false);
+			}
+		}
+		catch (NoSuchFieldException | SecurityException | IllegalAccessException | IllegalArgumentException e) {
+			throw new PageElementInitializationException(e.getMessage(), e.getCause());
 		}
 	}
 }

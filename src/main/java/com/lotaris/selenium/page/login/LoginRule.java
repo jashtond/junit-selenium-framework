@@ -83,19 +83,7 @@ public class LoginRule<AFTER_LOGIN_PAGE extends ILogoutPage, AFTER_LOGOUT_PAGE e
 	}
 	
 	@Override
-	public Statement apply(Statement base, Description description) {
-		return statement(base, description);
-	}
-	
-	/**
-	 * Method to avoid problems with anonymous class and final variables otherwise
-	 * the content of this method can be put on the method apply
-	 * 
-	 * @param base Base statement
-	 * @param description Description
-	 * @return New statement
-	 */
-	private Statement statement(final Statement base, final Description description) {
+	public Statement apply(final Statement base, final Description description) {
 		return new Statement() {
 			@Override
 			public void evaluate() throws Throwable {

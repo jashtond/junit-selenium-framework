@@ -55,8 +55,12 @@ public class UserCreationRule implements TestRule {
 			@Override
 			public void evaluate() throws Throwable {
 				before(description);
-				base.evaluate();
-				after(description);
+				try {
+					base.evaluate();
+				}
+				finally {
+					after(description);
+				}
 			}
 		};
 	}	

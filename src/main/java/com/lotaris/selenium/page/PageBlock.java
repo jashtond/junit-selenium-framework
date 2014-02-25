@@ -133,6 +133,36 @@ abstract class PageBlock {
 	protected void loadUrl(String url) {
 		driver.get(url);
 	}
+
+	/*
+	 * Navigate to a specific URL and retrieve the page expected. Checks are done against
+	 * the page tile given by the annotation on the page class and the URl given.
+	 * 
+	 * @param <T> The page title type
+	 * @param urlToNavigate The URL where to go
+	 * @param pageClass The page class expected to be at the target URL
+	 * @return The page object retrieved
+	 */
+	protected <T extends IPageObject> T navigateTo(String urlToNavigate, Class<T> pageClass) {
+		return navigateTo(urlToNavigate, pageClass, null);
+	}
+	
+	/**
+	 * Navigate to a specific URL and retrieve the page expected. Checks are done against
+	 * the page tile given and the URl given.
+	 * 
+	 * @param <T> The page title type
+	 * @param urlToNavigate The URL where to go
+	 * @param pageClass The page class expected to be at the target URL
+	 * @param pageTitle The page title expected to be at the target URL
+	 * @return The page object retrieved
+	 */
+	protected <T extends IPageObject> T navigateTo(String urlToNavigate, Class<T> pageClass, PageTitle pageTitle) {
+		loadUrl(urlToNavigate);
+		T page = PageFactory.initElements(driver, pageClass);
+		page.checks(urlToNavigate, pageTitle);
+		return page;
+	}
 	
 	/**
 	 * Build an URL based on the description

@@ -1,12 +1,18 @@
 package com.lotaris.selenium.page;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import com.lotaris.selenium.wait.WaitWrapper;
+import java.lang.reflect.Method;
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.FindAll;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.FindBys;
 import org.openqa.selenium.support.pagefactory.DefaultElementLocatorFactory;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import static com.lotaris.selenium.page.PageBlock.WAIT_TIME;
 
 /**
  * Similar to PageFactory but adapted to handle AbstractPageElement as well.
@@ -35,10 +41,9 @@ public class PageFactory {
 	 * @param pageClassToProxy A class which will be initialized.
 	 * @return An instantiated instance of the class
 	 */
-	public static <T extends IPageObject> T initElements(WebDriver webDriver, Class<T> pageClassToProxy) {
+	public static <T extends IPageObject> T initElements(final WebDriver webDriver, Class<T> pageClassToProxy) {
 		T page = instantiatePage(webDriver, pageClassToProxy);
-		final WebDriver driverRef = webDriver;
-		org.openqa.selenium.support.PageFactory.initElements(new PageDecorator(page, webDriver, new DefaultElementLocatorFactory(driverRef)), page);
+		org.openqa.selenium.support.PageFactory.initElements(new PageDecorator(page, webDriver, new DefaultElementLocatorFactory(webDriver)), page);
 		return page;
 	}
 
@@ -51,17 +56,44 @@ public class PageFactory {
 	 * @return The page created
 	 */
 	private static <T extends IPageObject> T instantiatePage(WebDriver webDriver, Class<T> pageClassToProxy) {
-		try {
+		Enhancer pageElementProxy = new Enhancer();
+
+		pageElementProxy.setCallback(new PageObjectHandler(webDriver));
+		pageElementProxy.setInterfaces(new Class[] {IPageObject.class});
+		pageElementProxy.setSuperclass(pageClassToProxy);
+
+		return (T) pageElementProxy.create(new Class[] { WebDriver.class }, new Object[] { webDriver });
+	}
+	
+	/**
+	 * The page object handler class provide the mechanism to organize a page object
+	 * like we do the page element and then to offer the wait before/after mechanism around
+	 * the method invoked on the page object.
+	 */
+	public static class PageObjectHandler implements MethodInterceptor {
+		
+		private final WebDriver webDriver;
+
+		public PageObjectHandler(WebDriver webDriver) {
+			this.webDriver = webDriver;
+		}
+
+		@Override
+		public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
 			try {
-				Constructor<T> cons = pageClassToProxy.getConstructor(WebDriver.class);
-				return cons.newInstance(webDriver);
-			} 
-			catch (InvocationTargetException e) {
-				return pageClassToProxy.newInstance();
+				// Create the wait wrapper based on the page object and other required stuff
+				WaitWrapper waitWrapper = new WaitWrapper((IPageBlock) obj, new WebDriverWait(webDriver, WAIT_TIME), method);
+				
+				// Manage the before/after wait around the page object method invocation
+				waitWrapper.manageBefore();
+				Object result = proxy.invokeSuper(obj, args);
+				waitWrapper.manageAfter();
+
+				return result;
 			}
-		} 
-		catch (InstantiationException | IllegalAccessException | NoSuchMethodException e) {
-			throw new RuntimeException(e);
+			catch (IllegalAccessException | InstantiationException e) {
+				throw new RuntimeException("Unexpected error", e);
+			}
 		}
 	}
 }

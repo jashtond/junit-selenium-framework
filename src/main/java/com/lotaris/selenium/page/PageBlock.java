@@ -6,12 +6,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.regex.Pattern;
-import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 /**
  * Shared structure for PageObject and PageElement that use
@@ -19,7 +16,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
  * 
  * @author Laurent Prevost <laurent.prevost@lotaris.com>
  */
-abstract class PageBlock {
+abstract class PageBlock implements IPageBlock {
 	private static final Pattern URL_PATH_PARAMETER_PATTERN = Pattern.compile(".*\\{[0-9]+\\}");
 
 	// Maximum wait time (in seconds) for a page element to be found/displayed/hidden
@@ -29,10 +26,7 @@ abstract class PageBlock {
 	 * Web driver
 	 */
 	WebDriver driver;
-
-	// Fluent wait which handles waiting for page elements
-	protected WebDriverWait wait;
-
+	
 	/**
 	 * Constructor.
 	 *
@@ -50,7 +44,6 @@ abstract class PageBlock {
 	 */
 	private void build(WebDriver webDriver) {
 		driver = webDriver;
-		wait = new WebDriverWait(driver, WAIT_TIME);
 		protectedBuild(webDriver);
 	}
 	
@@ -285,15 +278,6 @@ abstract class PageBlock {
 		else {
 			throw new IllegalArgumentException("Unable to find the PageDescriptor annotation on the PageClass");
 		}
-	}
-	
-	/**
-	 * Waits maximum 10 seconds for an element to be invisible.
-	 * 
-	 * @param locator The element that is expected to be invisible
-	 */
-	protected void waitForInvisibility(By locator) {
-		wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
 	}
 	
 	/**

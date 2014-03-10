@@ -1,6 +1,7 @@
 package com.lotaris.selenium.page;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -11,6 +12,7 @@ import java.lang.annotation.Target;
  * 
  * @author Laurent Prevost <laurent.prevost@lotaris.com>
  */
+@Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface PageDescriptor {

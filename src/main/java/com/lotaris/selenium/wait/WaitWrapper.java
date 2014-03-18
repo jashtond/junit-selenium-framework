@@ -235,8 +235,15 @@ public class WaitWrapper {
 						+ "empty constructor.", e);
 				}
 
-				// Finally, wait until the condition match or timeout reached
-				wrapper.webDriverWait.until(waitCondition.build());
+				try {
+					// Finally, wait until the condition match or timeout reached
+					wrapper.webDriverWait.until(waitCondition.build());
+				}
+				catch (Throwable t) {
+					LOG.error("Unable to accomplish the wait condition of type " + 
+						wait.value().getCanonicalName() + " during the wait for " + methodFullName(wrapper));
+					throw t;
+				}
 			}
 		},
 		
@@ -250,14 +257,21 @@ public class WaitWrapper {
 				WaitVisibility waitVisibility = getWaitAnnotationClass(wrapper);
 				
 				try {
-					// Check if the condition should be inversed or not
-					if (waitVisibility.not()) {
-						// Wait for invisibility of an element
-						wrapper.webDriverWait.until(new InvisibilityOfElement(extractField(wrapper.pageBlock, waitVisibility.value())));
+					try {
+						// Check if the condition should be inversed or not
+						if (waitVisibility.not()) {
+							// Wait for invisibility of an element
+							wrapper.webDriverWait.until(new InvisibilityOfElement(extractField(wrapper.pageBlock, waitVisibility.value())));
+						}
+						else {
+							// Wait for visibility
+							wrapper.webDriverWait.until(ExpectedConditions.visibilityOf(extractField(wrapper.pageBlock, waitVisibility.value())));
+						}
 					}
-					else {
-						// Wait for visibility
-						wrapper.webDriverWait.until(ExpectedConditions.visibilityOf(extractField(wrapper.pageBlock, waitVisibility.value())));
+					catch (Throwable t) {
+						LOG.error("Unable to wait the " + (waitVisibility.not() ? "invisibility" : "visibility") + " of element referenced by " + 
+							waitVisibility.value() + " during the wait for " + methodFullName(wrapper));
+						throw t;
 					}
 				}
 				catch (IllegalAccessException | IllegalArgumentException | NoSuchFieldException | SecurityException e) {
@@ -281,13 +295,20 @@ public class WaitWrapper {
 					ExpectedCondition<Boolean> stalenessCondition = ExpectedConditions.stalenessOf(extractField(wrapper.pageBlock, waitStaleness.value()));
 
 					// Check if it should be inversed
-					if (waitStaleness.not()) {
-						// Wait for un-staleness
-						wrapper.webDriverWait.until(ExpectedConditions.not(stalenessCondition));
+					try {
+						if (waitStaleness.not()) {
+							// Wait for un-staleness
+							wrapper.webDriverWait.until(ExpectedConditions.not(stalenessCondition));
+						}
+						else {
+							// Wait for staleness
+							wrapper.webDriverWait.until(stalenessCondition);
+						}
 					}
-					else {
-						// Wait for staleness
-						wrapper.webDriverWait.until(stalenessCondition);
+					catch (Throwable t) {
+						LOG.error("Unable to wait the " + (waitStaleness.not() ? "un-staleness" : "staleness") + " of the element refered by " + 
+							waitStaleness.value() + " during the wait for " + methodFullName(wrapper));
+						throw t;
 					}
 				}
 				catch (IllegalAccessException | IllegalArgumentException | NoSuchFieldException | SecurityException e) {
@@ -375,9 +396,24 @@ public class WaitWrapper {
 			return null;
 		}
 		
+		/**
+		 * Log information for the wait condition run
+		 * 
+		 * @param wrapper The wrapper to get info
+		 */
 		private void log(WaitWrapper wrapper) {
-			LOG.trace("Waiting action: {} - {} - {}.{}", 
-				wrapper.before ? "BEFORE" : "AFTER", this.name(), wrapper.method.getDeclaringClass().getCanonicalName(), wrapper.method.getName());
+			LOG.trace("Waiting action: {} - {} - {}", 
+				wrapper.before ? "BEFORE" : "AFTER", this.name(), methodFullName(wrapper));
+		}
+		
+		/**
+		 * Extract method name from the wrapper
+		 * 
+		 * @param wrapper The wrapper to get info
+		 * @return The method name extracted
+		 */
+		private static String methodFullName(WaitWrapper wrapper) {
+			return wrapper.method.getDeclaringClass().getCanonicalName() + "." + wrapper.method.getName();
 		}
 	}
 	

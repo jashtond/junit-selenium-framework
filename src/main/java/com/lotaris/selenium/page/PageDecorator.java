@@ -377,10 +377,7 @@ public class PageDecorator extends DefaultFieldDecorator {
 				for (Method m : WebElement.class.getMethods()) {
 					// If the method comes from a web element interface
 					if (m.getName().equals(method.getName())) {
-						waitWrapper.manageBefore();
-						Object result = method.invoke(pageElement, args);
-						waitWrapper.manageAfter();
-						return result;
+						return method.invoke(pageElement, args);
 					}
 				}
 

@@ -1,4 +1,4 @@
-package com.lotaris.selenium.expectetion;
+package com.lotaris.selenium.expectation;
 
 import java.util.List;
 import org.openqa.selenium.By;
@@ -27,6 +27,47 @@ public class ExtendedExpectedConditions {
         try {
 					// Find all elements corresponding to the locator
 					List<WebElement> elems = driver.findElements(locator);
+          
+					// No elems, considered as all elems are hidden
+					if (elems == null || elems.isEmpty()) {
+						return true;
+					}
+					
+					// If only one of the elems is visible, fail the check
+					for (WebElement elem : elems) {
+						if (elem.isDisplayed()) {
+							return false;
+						}
+					}
+					
+					// All element are hidden
+					return true;
+        } 
+				catch (NoSuchElementException | StaleElementReferenceException e) {
+          // Returns true because the element is not present in DOM. The
+          // try block checks if the element is present but is invisible.
+          // Returns true because stale element reference implies that element
+          // is no longer visible.
+          return true;
+        }
+      }
+    };
+  }
+	
+	/**
+	 * Condition to check if all elements located by the locator are hidden
+	 * 
+	 * @param baseElement The base element from which doing the condition
+	 * @param locator The locator rule
+	 * @return The conditions
+	 */
+	public static ExpectedCondition<Boolean> invisibilityOfAllElementLocated(final WebElement baseElement, final By locator) {
+		return new ExpectedCondition<Boolean>() {
+      @Override
+      public Boolean apply(WebDriver driver) {
+        try {
+					// Find all elements corresponding to the locator
+					List<WebElement> elems = baseElement.findElements(locator);
           
 					// No elems, considered as all elems are hidden
 					if (elems == null || elems.isEmpty()) {
@@ -96,9 +137,56 @@ public class ExtendedExpectedConditions {
 					
 					// Return true at the first element that is displayed
 					for (WebElement elem : elems) {
-						if (elem.isDisplayed()) {
-							return true;
+						try {
+							if (elem.isDisplayed()) {
+								return true;
+							}
 						}
+						catch (NoSuchElementException | StaleElementReferenceException e) {}
+					}
+					
+					// No element found is displayed
+					return false;
+        } 
+				catch (NoSuchElementException | StaleElementReferenceException e) {
+          // Returns true because the element is not present in DOM. The
+          // try block checks if the element is present but is invisible.
+          // Returns true because stale element reference implies that element
+          // is no longer visible.
+          return false;
+        }
+      }
+    };
+  }
+
+	/**
+	 * Condition to check that at least one element is visible on the page
+	 * 
+	 * @param baseElement The base element from which doing the condition
+	 * @param locator The locator to find the element
+	 * @return The condition
+	 */
+	public static ExpectedCondition<Boolean> atLeastOneElementIsVisible(final WebElement baseElement, final By locator) {
+		return new ExpectedCondition<Boolean>() {
+      @Override
+      public Boolean apply(WebDriver driver) {
+        try {
+					// Find the elements
+					List<WebElement> elems = baseElement.findElements(locator);
+          
+					// If no element are found, considered as true
+					if (elems == null || elems.isEmpty()) {
+						return true;
+					}
+					
+					// Return true at the first element that is displayed
+					for (WebElement elem : elems) {
+						try {
+							if (elem.isDisplayed()) {
+								return true;
+							}
+						}
+						catch (NoSuchElementException | StaleElementReferenceException e) {}
 					}
 					
 					// No element found is displayed

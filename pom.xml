@@ -5,7 +5,7 @@
 	<groupId>com.lotaris.selenium</groupId>
 	<artifactId>junit-selenium-framework</artifactId>
 	<name>JUnit Selenium Framework</name>
-	<version>1.5.0</version>
+	<version>1.5.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<properties>

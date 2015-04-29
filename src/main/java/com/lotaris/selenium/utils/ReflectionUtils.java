@@ -64,6 +64,35 @@ public final class ReflectionUtils {
 		}
 	}
 	
+//	!!! For later use !!!
+//	public static <T> T extractValue(Class<? extends T> valueType, Field field, Object extractedObject) {
+//		try {
+//			boolean acc = field.isAccessible();
+//			
+//			if (!acc) {
+//				field.setAccessible(true);
+//				acc = false;
+//			}
+//			
+//			Object result = field.get(extractedObject);
+//			
+//			if (!acc) {
+//				field.setAccessible(false);
+//			}
+//			
+//			return (T) result;
+//		}
+//		catch (SecurityException | IllegalAccessException | IllegalArgumentException e) {
+//			throw new PageElementInitializationException(e.getMessage(), e.getCause());
+//		}
+//	}	
+	
+	/**
+	 * Copy an object by reflection
+	 * 
+	 * @param source The object to get the field to copy
+	 * @param target The object to put the field
+	 */
 	public static void copyByReflection(Object source, Object target) {
 		Class scannedClass = source.getClass();
 

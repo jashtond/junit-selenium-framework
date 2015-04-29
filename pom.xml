@@ -191,6 +191,12 @@
 			<version>0.8.1</version>
 		</dependency>-->
 
+                <dependency>
+                        <groupId>com.lotaris.selenium</groupId>
+                        <artifactId>junit-selenium-framework</artifactId>
+                        <version>1.5.1</version>
+                </dependency>
+
 		<dependency>
 			<groupId>javax</groupId>
 			<artifactId>javaee-api</artifactId>
